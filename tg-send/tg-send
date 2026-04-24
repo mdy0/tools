@@ -1,7 +1,14 @@
 #!/usr/bin/env bash
 # Send a one-way message to a Telegram chat via the Bot API.
-# Usage: tg-send "Your message here"
-#        echo "message" | tg-send
+# Usage: tg-send [--slot KEY] "Your message here"
+#        echo "message" | tg-send [--slot KEY]
+#
+# --slot KEY  Edit the previous message sent under this slot name instead of
+#             creating a new one. Use any string as KEY — it identifies which
+#             message to update (e.g. "build-status", "deploy-prod").
+#             Falls back to a new message if the previous one was deleted or
+#             is too old to edit (Telegram limit: 48 hours).
+#             Appends "Last updated HH:MM" when editing.
 #
 # Reads credentials from a .env file in the same directory as this script.
 # Override the .env location by setting TG_SEND_ENV=/path/to/.env
@@ -28,8 +35,28 @@ if [[ -z "${CHAT_ID:-}" ]]; then
   exit 1
 fi
 
-if [[ $# -ge 1 ]]; then
-  MESSAGE="$*"
+# Parse flags
+SLOT=""
+ARGS=()
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --slot)
+      if [[ $# -lt 2 || -z "${2:-}" ]]; then
+        echo "Error: --slot requires a non-empty KEY argument" >&2
+        exit 1
+      fi
+      SLOT="$2"
+      shift 2
+      ;;
+    *)
+      ARGS+=("$1")
+      shift
+      ;;
+  esac
+done
+
+if [[ ${#ARGS[@]} -ge 1 ]]; then
+  MESSAGE="${ARGS[*]}"
 else
   MESSAGE="$(cat)"
 fi
@@ -39,10 +66,98 @@ if [[ -z "$MESSAGE" ]]; then
   exit 1
 fi
 
-curl -s -X POST \
-  "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
-  -d chat_id="${CHAT_ID}" \
-  --data-urlencode text="${MESSAGE}" \
-  > /dev/null
+# The bot token is in API_BASE, a shell variable — not in any command's argv.
+# tg_curl feeds the URL to curl via stdin (-K -) so the token never appears
+# in the process list (ps aux shows argv, not stdin).
+API_BASE="https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}"
 
-echo "Sent."
+tg_curl() {
+  local endpoint="$1"
+  shift
+  curl -s -K - "$@" <<EOF
+url = "${API_BASE}/${endpoint}"
+EOF
+}
+
+api_ok() {
+  python3 -c "import json,sys; print(json.load(sys.stdin).get('ok','false'))" 2>/dev/null || echo "false"
+}
+
+if [[ -n "$SLOT" ]]; then
+  SLOT_KEY="${CHAT_ID}:${SLOT}"
+  IDS_FILE="$(dirname "$ENV_FILE")/.message_ids.json"
+
+  stored_id() {
+    [[ ! -f "$IDS_FILE" ]] && echo "" && return
+    TG_IDS_FILE="$IDS_FILE" TG_SLOT_KEY="$SLOT_KEY" python3 -c "
+import json, os
+data = json.load(open(os.environ['TG_IDS_FILE']))
+print(data.get(os.environ['TG_SLOT_KEY'], ''))
+" 2>/dev/null || echo ""
+  }
+
+  save_id() {
+    local msg_id="$1"
+    TG_IDS_FILE="$IDS_FILE" TG_SLOT_KEY="$SLOT_KEY" TG_MSG_ID="$msg_id" python3 -c "
+import json, os, stat
+path = os.environ['TG_IDS_FILE']
+data = json.load(open(path)) if os.path.exists(path) else {}
+data[os.environ['TG_SLOT_KEY']] = os.environ['TG_MSG_ID']
+is_new = not os.path.exists(path)
+with open(path, 'w') as f:
+    json.dump(data, f, indent=2)
+if is_new:
+    os.chmod(path, stat.S_IRUSR | stat.S_IWUSR)
+"
+  }
+
+  MSG_ID="$(stored_id)"
+
+  if [[ -n "$MSG_ID" ]]; then
+    TIMESTAMP="$(date +'%H:%M')"
+    EDITED_MESSAGE="${MESSAGE}
+<i>Last updated ${TIMESTAMP}</i>"
+
+    RESPONSE="$(tg_curl "editMessageText" \
+      -d chat_id="${CHAT_ID}" \
+      -d message_id="${MSG_ID}" \
+      -d parse_mode="HTML" \
+      --data-urlencode text="${EDITED_MESSAGE}")"
+
+    if [[ "$(echo "$RESPONSE" | api_ok)" == "True" ]]; then
+      echo "Edited message ${MSG_ID}"
+      exit 0
+    fi
+    # Edit failed (message deleted, too old, etc.) — fall through to send new
+  fi
+
+  RESPONSE="$(tg_curl "sendMessage" \
+    -d chat_id="${CHAT_ID}" \
+    --data-urlencode text="${MESSAGE}")"
+
+  NEW_ID="$(echo "$RESPONSE" | python3 -c "
+import json, sys
+d = json.load(sys.stdin)
+print(d['result']['message_id'] if d.get('ok') else '')
+" 2>/dev/null || echo "")"
+
+  if [[ -z "$NEW_ID" ]]; then
+    echo "Error: sendMessage failed: $RESPONSE" >&2
+    exit 1
+  fi
+
+  save_id "$NEW_ID"
+  echo "Sent new message ${NEW_ID}"
+
+else
+  RESPONSE="$(tg_curl "sendMessage" \
+    -d chat_id="${CHAT_ID}" \
+    --data-urlencode text="${MESSAGE}")"
+
+  if [[ "$(echo "$RESPONSE" | api_ok)" != "True" ]]; then
+    echo "Error: sendMessage failed: $RESPONSE" >&2
+    exit 1
+  fi
+
+  echo "Sent."
+fi
