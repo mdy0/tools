@@ -8,7 +8,7 @@
 #             message to update (e.g. "build-status", "deploy-prod").
 #             Falls back to a new message if the previous one was deleted or
 #             is too old to edit (Telegram limit: 48 hours).
-#             Appends "Last updated HH:MM" when editing.
+#             Appends "Last updated H:MM AM/PM" when editing.
 #
 # Reads credentials from a .env file in the same directory as this script.
 # Override the .env location by setting TG_SEND_ENV=/path/to/.env
@@ -114,7 +114,7 @@ if is_new:
   MSG_ID="$(stored_id)"
 
   if [[ -n "$MSG_ID" ]]; then
-    TIMESTAMP="$(date +'%H:%M')"
+    TIMESTAMP="$(date +'%-I:%M %p')"
     EDITED_MESSAGE="${MESSAGE}
 <i>Last updated ${TIMESTAMP}</i>"
 
