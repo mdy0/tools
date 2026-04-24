@@ -146,7 +146,7 @@ Pass `--slot KEY` to edit a previous message instead of sending a new one. The s
 ./tg-send --slot "deploy-prod" "Deploy rolled back ⚠️"
 ```
 
-When editing, `tg-send` appends `Last updated HH:MM` to the message so the reader knows it changed. If the original message was deleted or is more than 48 hours old (Telegram's edit limit), a new message is sent and becomes the new tracked message for that slot.
+When editing, `tg-send` appends `Last updated H:MM AM/PM` to the message so the reader knows it changed. If the original message was deleted or is more than 48 hours old (Telegram's edit limit), a new message is sent and becomes the new tracked message for that slot.
 
 Each `CHAT_ID + slot name` pair tracks independently, so multiple workflows sending to the same chat can each have their own tracked message.
 
