@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Send a one-way message to a Telegram chat via the Bot API.
-# Usage: tg-send [--slot KEY] "Your message here"
-#        echo "message" | tg-send [--slot KEY]
+# Send a message to a Telegram chat via the Bot API.
+# Usage: tg-send [--slot KEY] [--html] "Your message here"
+#        echo "message" | tg-send [--slot KEY] [--html]
 #
 # --slot KEY  Edit the previous message sent under this slot name instead of
 #             creating a new one. Use any string as KEY — it identifies which
@@ -9,6 +9,12 @@
 #             Falls back to a new message if the previous one was deleted or
 #             is too old to edit (Telegram limit: 48 hours).
 #             Appends "Last updated H:MM AM/PM" when editing.
+#
+# --html      Render the message as HTML. Supports <b>, <i>, <code>, <pre>,
+#             and other tags supported by Telegram's HTML parse mode.
+#             Without this flag, messages are sent as plain text and angle
+#             brackets are safe to use literally.
+#             With this flag, literal < and > must be escaped as &lt; and &gt;.
 #
 # Reads credentials from a .env file in the same directory as this script.
 # Override the .env location by setting TG_SEND_ENV=/path/to/.env
@@ -37,6 +43,7 @@ fi
 
 # Parse flags
 SLOT=""
+HTML_MODE=""
 ARGS=()
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -47,6 +54,10 @@ while [[ $# -gt 0 ]]; do
       fi
       SLOT="$2"
       shift 2
+      ;;
+    --html)
+      HTML_MODE=1
+      shift
       ;;
     *)
       ARGS+=("$1")
@@ -115,13 +126,21 @@ if is_new:
 
   if [[ -n "$MSG_ID" ]]; then
     TIMESTAMP="$(date +'%-I:%M %p')"
-    EDITED_MESSAGE="${MESSAGE}
+    if [[ -n "$HTML_MODE" ]]; then
+      EDITED_MESSAGE="${MESSAGE}
 <i>Last updated ${TIMESTAMP}</i>"
+    else
+      EDITED_MESSAGE="${MESSAGE}
+Last updated ${TIMESTAMP}"
+    fi
+
+    PARSE_MODE_ARG=()
+    [[ -n "$HTML_MODE" ]] && PARSE_MODE_ARG=(-d parse_mode="HTML")
 
     RESPONSE="$(tg_curl "editMessageText" \
       -d chat_id="${CHAT_ID}" \
       -d message_id="${MSG_ID}" \
-      -d parse_mode="HTML" \
+      "${PARSE_MODE_ARG[@]}" \
       --data-urlencode text="${EDITED_MESSAGE}")"
 
     if [[ "$(echo "$RESPONSE" | api_ok)" == "True" ]]; then
@@ -131,8 +150,12 @@ if is_new:
     # Edit failed (message deleted, too old, etc.) — fall through to send new
   fi
 
+  PARSE_MODE_ARG=()
+  [[ -n "$HTML_MODE" ]] && PARSE_MODE_ARG=(-d parse_mode="HTML")
+
   RESPONSE="$(tg_curl "sendMessage" \
     -d chat_id="${CHAT_ID}" \
+    "${PARSE_MODE_ARG[@]}" \
     --data-urlencode text="${MESSAGE}")"
 
   NEW_ID="$(echo "$RESPONSE" | python3 -c "
@@ -150,8 +173,12 @@ print(d['result']['message_id'] if d.get('ok') else '')
   echo "Sent new message ${NEW_ID}"
 
 else
+  PARSE_MODE_ARG=()
+  [[ -n "$HTML_MODE" ]] && PARSE_MODE_ARG=(-d parse_mode="HTML")
+
   RESPONSE="$(tg_curl "sendMessage" \
     -d chat_id="${CHAT_ID}" \
+    "${PARSE_MODE_ARG[@]}" \
     --data-urlencode text="${MESSAGE}")"
 
   if [[ "$(echo "$RESPONSE" | api_ok)" != "True" ]]; then
