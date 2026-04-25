@@ -45,7 +45,7 @@ The chat ID tells the bot where to deliver messages. It can be a personal DM, a 
 Topics are threads in supergroups that have the Topics feature enabled. Each topic has its own `message_thread_id`.
 
 1. Make sure the bot is a member of the supergroup (you already have the group's chat ID).
-2. Send any message **inside the topic** you want to target.
+2. Send `/start` **inside the topic** you want to target. Using a bot command rather than a plain message ensures the bot receives it even if privacy mode is enabled on the group.
 3. Run `./get-chat-id.sh` — topic lines appear indented below their group, e.g.:
    ```
    chat_id=-1001234567890  type=supergroup  name=My Group
@@ -307,4 +307,5 @@ For Python, add a `send_telegram()` helper (see the Python integration section a
 - **The 48-hour edit window.** Telegram does not allow editing messages older than 48 hours. `tg-send` handles this gracefully (falls back to a new message), but long-running workflows that span days will always send new messages rather than edit old ones.
 - **`--html` and angle brackets.** Without `--html`, messages are plain text and `<` / `>` are safe to use literally. With `--html`, Telegram interprets the message as HTML — literal `<` and `>` must be escaped as `&lt;` and `&gt;` or they will be consumed silently, potentially mangling the message.
 - **Topics require a forum-style supergroup.** The `--topic` flag only works in supergroups with the Topics feature enabled. Using it with a regular group, DM, or channel will return a 400 error from the API.
+- **Privacy mode blocks plain messages when finding a topic ID.** If the group has privacy mode enabled, the bot won't see regular messages — send `/start` inside the topic instead. Bots always receive commands regardless of privacy mode.
 - **Topic slots are independent.** A `--slot` used with `--topic 42` and the same `--slot` without `--topic` (or with a different topic) track separate messages. Same slot name, different scope.
