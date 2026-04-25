@@ -95,6 +95,8 @@ The bot token is the only credential this tool uses. Protecting it has three lay
 
 **Not in the process list**: the bot token appears in the Telegram API URL. Rather than passing it as a command-line argument (where `ps aux` would expose it to every user on the machine), `tg-send` feeds the URL to `curl` via stdin using the `-K -` flag. Only the chat ID and message content appear in `curl`'s argv.
 
+**Safe `.env` parsing**: `tg-send` uses a Python stdlib parser rather than bash `source` to load the `.env` file. This means other keys in the same file (e.g. `WP_APP_PASSWORD=my password with spaces`) are ignored safely, making `TG_SEND_ENV` reliable when pointing at a project `.env` that contains values with spaces.
+
 **What `.message_ids.json` contains**: when `--slot` is used, the script records `{ "CHAT_ID:slot-name": message_id }`. This is metadata, not a credential — but it does reveal which chats you're sending to, so it deserves the same gitignore treatment as `.env`.
 
 **Slot names**: the slot key is stored in plain text in `.message_ids.json`. Do not embed sensitive information in slot names.
@@ -309,3 +311,4 @@ For Python, add a `send_telegram()` helper (see the Python integration section a
 - **Topics require a forum-style supergroup.** The `--topic` flag only works in supergroups with the Topics feature enabled. Using it with a regular group, DM, or channel will return a 400 error from the API.
 - **Privacy mode blocks plain messages when finding a topic ID.** If the group has privacy mode enabled, the bot won't see regular messages — send `/start` inside the topic instead. Bots always receive commands regardless of privacy mode.
 - **Topic slots are independent.** A `--slot` used with `--topic 42` and the same `--slot` without `--topic` (or with a different topic) track separate messages. Same slot name, different scope.
+- **`TG_SEND_ENV` is safe to point at any `.env` file.** The parser reads only `TELEGRAM_BOT_TOKEN` and `CHAT_ID`; all other keys are ignored, including ones with unquoted spaces that would break a bare `source`.
