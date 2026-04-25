@@ -1,8 +1,8 @@
 # tg-send
 
-A minimal shell script for sending one-way messages to Telegram from any script or automated workflow. Uses the Telegram Bot API directly via `curl` — no MCP server, no SDK, no framework dependency.
+A minimal shell script for sending messages to Telegram from any script or automated workflow — and optionally editing them in place. Uses the Telegram Bot API directly via `curl` — no MCP server, no SDK, no framework dependency.
 
-**What "one-way" means**: this tool sends messages; it does not listen for replies. It's the right fit for notifications, status updates, log tails, or any situation where a script needs to reach a human through Telegram.
+**What it does**: sends messages and, with the `--slot` flag, edits a previously sent message instead of posting a new one. This is useful for status updates that should show the current state rather than a growing thread of old states. It does not listen for replies.
 
 **What it is not**: a chatbot framework or a two-way integration. For interactive bots or command routing, look elsewhere.
 
@@ -131,6 +131,9 @@ echo "Deployment complete" | ./tg-send
 
 # Pipe multi-line output
 git log --oneline -5 | ./tg-send
+
+# Send with HTML formatting
+./tg-send --html "<b>Build failed</b> — see <code>build.log</code> for details"
 ```
 
 ### Updating a message in place
@@ -144,9 +147,12 @@ Pass `--slot KEY` to edit a previous message instead of sending a new one. The s
 # Later calls: edit the same message in Telegram
 ./tg-send --slot "deploy-prod" "Deploy complete ✅"
 ./tg-send --slot "deploy-prod" "Deploy rolled back ⚠️"
+
+# With HTML formatting
+./tg-send --slot "deploy-prod" --html "<b>Deploy complete</b> ✅"
 ```
 
-When editing, `tg-send` appends `Last updated H:MM AM/PM` to the message so the reader knows it changed. If the original message was deleted or is more than 48 hours old (Telegram's edit limit), a new message is sent and becomes the new tracked message for that slot.
+When editing, `tg-send` appends `Last updated H:MM AM/PM` to the message so the reader knows it changed. With `--html`, this suffix is italicised (`<i>Last updated ...</i>`); without it, it's plain text. If the original message was deleted or is more than 48 hours old (Telegram's edit limit), a new message is sent and becomes the new tracked message for that slot.
 
 Each `CHAT_ID + slot name` pair tracks independently, so multiple workflows sending to the same chat can each have their own tracked message.
 
@@ -174,10 +180,12 @@ from pathlib import Path
 
 TG_SEND = Path(__file__).parent / "tg-send" / "tg-send"
 
-def send_telegram(message: str, slot: str | None = None) -> None:
+def send_telegram(message: str, slot: str | None = None, html: bool = False) -> None:
     cmd = [str(TG_SEND)]
     if slot:
         cmd += ["--slot", slot]
+    if html:
+        cmd.append("--html")
     cmd.append(message)
     result = subprocess.run(cmd, capture_output=True, text=True)
     if result.returncode != 0:
@@ -186,10 +194,13 @@ def send_telegram(message: str, slot: str | None = None) -> None:
 # Send a one-off notification
 send_telegram("Step 5 complete: 3 posts published")
 
+# Send with HTML formatting
+send_telegram("<b>Error:</b> pipeline failed at step 3", html=True)
+
 # Update a status message in place across multiple calls
 send_telegram("Build started...", slot="build-main")
 # ... later ...
-send_telegram("Build complete ✅", slot="build-main")
+send_telegram("<b>Build complete</b> ✅", slot="build-main", html=True)
 ```
 
 If `tg-send` is on `PATH` (user-level install), omit the `TG_SEND` path and use `"tg-send"` directly.
@@ -261,3 +272,4 @@ For Python, add a `send_telegram()` helper (see the Python integration section a
 - **Chat IDs for groups are negative integers.** This is expected; do not treat it as an error.
 - **Slot names are stored in plain text.** Do not put passwords, tokens, or other secrets in a slot name.
 - **The 48-hour edit window.** Telegram does not allow editing messages older than 48 hours. `tg-send` handles this gracefully (falls back to a new message), but long-running workflows that span days will always send new messages rather than edit old ones.
+- **`--html` and angle brackets.** Without `--html`, messages are plain text and `<` / `>` are safe to use literally. With `--html`, Telegram interprets the message as HTML — literal `<` and `>` must be escaped as `&lt;` and `&gt;` or they will be consumed silently, potentially mangling the message.
