@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Send a message to a Telegram chat via the Bot API.
-# Usage: tg-send [--slot KEY] [--html] "Your message here"
-#        echo "message" | tg-send [--slot KEY] [--html]
+# Usage: tg-send [--slot KEY] [--html] [--topic ID] "Your message here"
+#        echo "message" | tg-send [--slot KEY] [--html] [--topic ID]
 #
 # --slot KEY  Edit the previous message sent under this slot name instead of
 #             creating a new one. Use any string as KEY — it identifies which
@@ -15,6 +15,11 @@
 #             Without this flag, messages are sent as plain text and angle
 #             brackets are safe to use literally.
 #             With this flag, literal < and > must be escaped as &lt; and &gt;.
+#
+# --topic ID  Send to a specific topic (thread) in a forum-style supergroup.
+#             ID is the message_thread_id of the topic — run get-chat-id.sh
+#             and send a message in the topic to find it.
+#             When combined with --slot, the slot is scoped to the topic.
 #
 # Reads credentials from a .env file in the same directory as this script.
 # Override the .env location by setting TG_SEND_ENV=/path/to/.env
@@ -44,6 +49,7 @@ fi
 # Parse flags
 SLOT=""
 HTML_MODE=""
+TOPIC_ID=""
 ARGS=()
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -58,6 +64,14 @@ while [[ $# -gt 0 ]]; do
     --html)
       HTML_MODE=1
       shift
+      ;;
+    --topic)
+      if [[ $# -lt 2 || -z "${2:-}" ]]; then
+        echo "Error: --topic requires a numeric ID argument" >&2
+        exit 1
+      fi
+      TOPIC_ID="$2"
+      shift 2
       ;;
     *)
       ARGS+=("$1")
@@ -95,7 +109,7 @@ api_ok() {
 }
 
 if [[ -n "$SLOT" ]]; then
-  SLOT_KEY="${CHAT_ID}:${SLOT}"
+  SLOT_KEY="${CHAT_ID}${TOPIC_ID:+:$TOPIC_ID}:${SLOT}"
   IDS_FILE="$(dirname "$ENV_FILE")/.message_ids.json"
 
   stored_id() {
@@ -152,9 +166,12 @@ Last updated ${TIMESTAMP}"
 
   PARSE_MODE_ARG=()
   [[ -n "$HTML_MODE" ]] && PARSE_MODE_ARG=(-d parse_mode="HTML")
+  TOPIC_ARG=()
+  [[ -n "$TOPIC_ID" ]] && TOPIC_ARG=(-d message_thread_id="${TOPIC_ID}")
 
   RESPONSE="$(tg_curl "sendMessage" \
     -d chat_id="${CHAT_ID}" \
+    "${TOPIC_ARG[@]}" \
     "${PARSE_MODE_ARG[@]}" \
     --data-urlencode text="${MESSAGE}")"
 
@@ -175,9 +192,12 @@ print(d['result']['message_id'] if d.get('ok') else '')
 else
   PARSE_MODE_ARG=()
   [[ -n "$HTML_MODE" ]] && PARSE_MODE_ARG=(-d parse_mode="HTML")
+  TOPIC_ARG=()
+  [[ -n "$TOPIC_ID" ]] && TOPIC_ARG=(-d message_thread_id="${TOPIC_ID}")
 
   RESPONSE="$(tg_curl "sendMessage" \
     -d chat_id="${CHAT_ID}" \
+    "${TOPIC_ARG[@]}" \
     "${PARSE_MODE_ARG[@]}" \
     --data-urlencode text="${MESSAGE}")"
 
