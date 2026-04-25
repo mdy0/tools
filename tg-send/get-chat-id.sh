@@ -17,14 +17,45 @@ if [[ ! -f "$ENV_FILE" ]]; then
   echo "At minimum, set TELEGRAM_BOT_TOKEN in your .env file." >&2
   exit 1
 fi
-source "$ENV_FILE"
+
+eval "$(python3 - "$ENV_FILE" <<'PYEOF'
+import sys, shlex
+wanted = {'TELEGRAM_BOT_TOKEN'}
+with open(sys.argv[1]) as f:
+    for line in f:
+        line = line.strip()
+        if not line or line.startswith('#'):
+            continue
+        if line.startswith('export '):
+            line = line[7:]
+        if '=' not in line:
+            continue
+        key, _, val = line.partition('=')
+        key = key.strip()
+        if key not in wanted:
+            continue
+        val = val.strip()
+        if val and val[0] in ('"', "'"):
+            try:
+                val = shlex.split(val)[0]
+            except ValueError:
+                val = val.strip(val[0])
+        else:
+            val = val.split('#')[0].rstrip()
+        print(f"{key}={shlex.quote(val)}")
+PYEOF
+)"
 
 if [[ -z "${TELEGRAM_BOT_TOKEN:-}" ]]; then
   echo "Error: TELEGRAM_BOT_TOKEN not set in $ENV_FILE" >&2
   exit 1
 fi
 
-curl -s "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getUpdates" | \
+API_BASE="https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}"
+
+curl -s -K - <<EOF | \
+url = "${API_BASE}/getUpdates"
+EOF
   python3 -c "
 import json, sys
 data = json.load(sys.stdin)

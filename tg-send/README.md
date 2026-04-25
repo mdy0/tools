@@ -93,9 +93,9 @@ The bot token is the only credential this tool uses. Protecting it has three lay
 
 **Not committed**: `.env` and `.message_ids.json` are both gitignored at the tool level, and the repo root `.gitignore` is a backstop for `.env`.
 
-**Not in the process list**: the bot token appears in the Telegram API URL. Rather than passing it as a command-line argument (where `ps aux` would expose it to every user on the machine), `tg-send` feeds the URL to `curl` via stdin using the `-K -` flag. Only the chat ID and message content appear in `curl`'s argv.
+**Not in the process list**: the bot token appears in the Telegram API URL. Rather than passing it as a command-line argument (where `ps aux` would expose it to every user on the machine), both scripts feed the URL to `curl` via stdin using the `-K -` flag. In normal sends, only the chat ID and message content appear in `curl`'s argv.
 
-**Safe `.env` parsing**: `tg-send` uses a Python stdlib parser rather than bash `source` to load the `.env` file. This means other keys in the same file (e.g. `WP_APP_PASSWORD=my password with spaces`) are ignored safely, making `TG_SEND_ENV` reliable when pointing at a project `.env` that contains values with spaces.
+**Safe `.env` parsing**: both scripts use a Python stdlib parser rather than bash `source` to load the `.env` file. This means other keys in the same file (e.g. `WP_APP_PASSWORD=my password with spaces`) are ignored safely, making `TG_SEND_ENV` reliable when pointing at a project `.env` that contains values with spaces.
 
 **What `.message_ids.json` contains**: when `--slot` is used, the script records `{ "CHAT_ID:slot-name": message_id }`. This is metadata, not a credential — but it does reveal which chats you're sending to, so it deserves the same gitignore treatment as `.env`.
 
