@@ -187,10 +187,12 @@ The script sends text only. To send a file (photo, document, audio), use the Bot
 
 ```bash
 # Send a file as a document
-curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument" \
+curl -s -X POST -K - \
   -F chat_id="${CHAT_ID}" \
   -F document=@"/path/to/file.pdf" \
-  -F caption="Here is your file"
+  -F caption="Here is your file" <<EOF
+url = "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument"
+EOF
 ```
 
 ---
