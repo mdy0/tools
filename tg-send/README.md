@@ -40,6 +40,19 @@ The chat ID tells the bot where to deliver messages. It can be a personal DM, a 
 2. Post anything to the channel.
 3. Run `./get-chat-id.sh` — the channel will appear with `type=channel`.
 
+**For a topic inside a forum-style supergroup:**
+
+Topics are threads in supergroups that have the Topics feature enabled. Each topic has its own `message_thread_id`.
+
+1. Make sure the bot is a member of the supergroup (you already have the group's chat ID).
+2. Send any message **inside the topic** you want to target.
+3. Run `./get-chat-id.sh` — topic lines appear indented below their group, e.g.:
+   ```
+   chat_id=-1001234567890  type=supergroup  name=My Group
+     topic  chat_id=-1001234567890  message_thread_id=42  name=Deployments
+   ```
+4. Use the `message_thread_id` with the `--topic` flag when sending.
+
 ### 3. Set up credentials
 
 ```bash
@@ -134,6 +147,12 @@ git log --oneline -5 | ./tg-send
 
 # Send with HTML formatting
 ./tg-send --html "<b>Build failed</b> — see <code>build.log</code> for details"
+
+# Send to a specific topic in a forum supergroup
+./tg-send --topic 42 "Deploy finished"
+
+# Topic + HTML
+./tg-send --topic 42 --html "<b>Deploy finished</b> ✅"
 ```
 
 ### Updating a message in place
@@ -150,6 +169,10 @@ Pass `--slot KEY` to edit a previous message instead of sending a new one. The s
 
 # With HTML formatting
 ./tg-send --slot "deploy-prod" --html "<b>Deploy complete</b> ✅"
+
+# Scoped to a topic — slot tracks independently per topic
+./tg-send --slot "deploy-prod" --topic 42 "Deploy started..."
+./tg-send --slot "deploy-prod" --topic 42 "Deploy complete ✅"
 ```
 
 When editing, `tg-send` appends `Last updated H:MM AM/PM` to the message so the reader knows it changed. With `--html`, this suffix is italicised (`<i>Last updated ...</i>`); without it, it's plain text. If the original message was deleted or is more than 48 hours old (Telegram's edit limit), a new message is sent and becomes the new tracked message for that slot.
@@ -180,12 +203,14 @@ from pathlib import Path
 
 TG_SEND = Path(__file__).parent / "tg-send" / "tg-send"
 
-def send_telegram(message: str, slot: str | None = None, html: bool = False) -> None:
+def send_telegram(message: str, slot: str | None = None, html: bool = False, topic: int | None = None) -> None:
     cmd = [str(TG_SEND)]
     if slot:
         cmd += ["--slot", slot]
     if html:
         cmd.append("--html")
+    if topic is not None:
+        cmd += ["--topic", str(topic)]
     cmd.append(message)
     result = subprocess.run(cmd, capture_output=True, text=True)
     if result.returncode != 0:
@@ -197,10 +222,18 @@ send_telegram("Step 5 complete: 3 posts published")
 # Send with HTML formatting
 send_telegram("<b>Error:</b> pipeline failed at step 3", html=True)
 
+# Send to a specific topic
+send_telegram("Deploy finished", topic=42)
+
 # Update a status message in place across multiple calls
 send_telegram("Build started...", slot="build-main")
 # ... later ...
 send_telegram("<b>Build complete</b> ✅", slot="build-main", html=True)
+
+# Slot scoped to a topic
+send_telegram("Deploy started...", slot="deploy", topic=42)
+# ... later ...
+send_telegram("Deploy complete ✅", slot="deploy", topic=42)
 ```
 
 If `tg-send` is on `PATH` (user-level install), omit the `TG_SEND` path and use `"tg-send"` directly.
@@ -273,3 +306,5 @@ For Python, add a `send_telegram()` helper (see the Python integration section a
 - **Slot names are stored in plain text.** Do not put passwords, tokens, or other secrets in a slot name.
 - **The 48-hour edit window.** Telegram does not allow editing messages older than 48 hours. `tg-send` handles this gracefully (falls back to a new message), but long-running workflows that span days will always send new messages rather than edit old ones.
 - **`--html` and angle brackets.** Without `--html`, messages are plain text and `<` / `>` are safe to use literally. With `--html`, Telegram interprets the message as HTML — literal `<` and `>` must be escaped as `&lt;` and `&gt;` or they will be consumed silently, potentially mangling the message.
+- **Topics require a forum-style supergroup.** The `--topic` flag only works in supergroups with the Topics feature enabled. Using it with a regular group, DM, or channel will return a 400 error from the API.
+- **Topic slots are independent.** A `--slot` used with `--topic 42` and the same `--slot` without `--topic` (or with a different topic) track separate messages. Same slot name, different scope.
