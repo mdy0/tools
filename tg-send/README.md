@@ -244,18 +244,18 @@ If `tg-send` is on `PATH` (user-level install), omit the `TG_SEND` path and use 
 
 ---
 
-## For Claude Code
+## For AI coding agents
 
 This section describes how to set up `tg-send` in a new project context. Read the sections above first for background; this section is a checklist of actions.
 
 ### Prerequisites (human must do these first)
 
-Before Claude Code can proceed, the human must complete:
+Before proceeding, the human must complete:
 
 1. **Create a Telegram bot** via @BotFather and have the bot token ready.
 2. **Identify the target chat** (personal DM, group, or channel) and have the chat ID ready. If the chat ID is not known, run `get-chat-id.sh` after sending the bot a message.
 
-Claude Code cannot retrieve credentials or perform Telegram account actions.
+An AI coding agent cannot retrieve credentials or perform Telegram account actions.
 
 ### Setup steps
 

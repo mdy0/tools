@@ -30,13 +30,13 @@ Plus whatever scripts, helpers, or config the tool needs.
 3. **Deployment options** — at minimum: user-level (shared across projects) vs project-level (self-contained in repo), with tradeoffs and "use this when" guidance
 4. **Usage** — copy-pasteable CLI examples covering the main cases
 5. **Integration** — how to call the tool from another language (Python, shell, etc.)
-6. **For Claude Code** — structured setup checklist (see below)
+6. **For AI coding agents** — structured setup checklist (see below)
 
-### The "For Claude Code" section
+### The "For AI coding agents" section
 
 This is the most important section for reuse. It must include:
 
-- **Prerequisites** — what the human must do before Claude Code can proceed (Claude Code cannot create accounts, retrieve credentials, or perform actions that require a logged-in human)
+- **Prerequisites** — what the human must do before an AI coding agent can proceed (agents cannot create accounts, retrieve credentials, or perform actions that require a logged-in human)
 - **Setup steps** — numbered, actionable, with exact commands
 - **What to watch out for** — non-obvious failure modes (silent failures, permission requirements, negative IDs, etc.)
 
