@@ -8,6 +8,7 @@ Inspired by [simonw/tools](https://github.com/simonw/tools).
 
 | Tool | What it does |
 |------|-------------|
+| [markdown-copy-wp](markdown-copy-wp/) | `<markdown-copy>` web component for WordPress — renders markdown inline with a copy/toggle badge; no build step |
 | [tg-send](tg-send/) | Send one-way messages to Telegram via the Bot API — no MCP, no framework dependency |
 
 ## Philosophy

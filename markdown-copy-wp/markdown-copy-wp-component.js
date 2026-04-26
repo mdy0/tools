@@ -1,0 +1,194 @@
+import { marked } from 'https://cdnjs.cloudflare.com/ajax/libs/marked/15.0.7/lib/marked.esm.js';
+
+class MarkdownCopy extends HTMLElement {
+  constructor() {
+    super();
+    this.attachShadow({ mode: 'open' });
+    this._showRaw = false;
+    this._menuOpen = false;
+  }
+
+  connectedCallback() {
+    if (this._raw === undefined) {
+      const scriptEl = this.querySelector('script[type="text/markdown"]');
+      const textarea = this.querySelector('textarea');
+      const source = scriptEl ? scriptEl.textContent : textarea ? textarea.value : this.textContent;
+      this._raw = this._dedent(source);
+      if (scriptEl) scriptEl.remove();
+      else if (textarea) textarea.remove();
+
+      // Remove email fallback <pre> if present (Mailchimp plain-text fallback)
+      const fallback = this.querySelector('pre.markdown-fallback');
+      if (fallback) fallback.remove();
+
+      this.shadowRoot.innerHTML = `
+        <style>${MarkdownCopy.styles}</style>
+        <div class="wrap">
+          <div class="tag-area">
+            <button class="tag" aria-label="Markdown options">markdown</button>
+            <div class="menu hidden">
+              <button class="menu-btn" data-action="toggle">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                See code
+              </button>
+              <button class="menu-btn" data-action="copy">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                Copy
+              </button>
+            </div>
+          </div>
+          <div class="rendered">${marked.parse(this._raw)}</div>
+          <pre class="raw hidden">${this._escapeHtml(this._raw)}</pre>
+        </div>
+      `;
+
+      const tag = this.shadowRoot.querySelector('.tag');
+      const menu = this.shadowRoot.querySelector('.menu');
+
+      tag.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this._menuOpen = !this._menuOpen;
+        menu.classList.toggle('hidden', !this._menuOpen);
+      });
+
+      this.shadowRoot.querySelector('[data-action="copy"]').addEventListener('click', (e) => {
+        e.stopPropagation();
+        navigator.clipboard.writeText(this._raw).then(() => {
+          const btn = this.shadowRoot.querySelector('[data-action="copy"]');
+          const orig = btn.innerHTML;
+          btn.textContent = 'Copied!';
+          setTimeout(() => btn.innerHTML = orig, 1200);
+        });
+      });
+
+      this.shadowRoot.querySelector('[data-action="toggle"]').addEventListener('click', () => {
+        this._showRaw = !this._showRaw;
+        const rendered = this.shadowRoot.querySelector('.rendered');
+        const raw = this.shadowRoot.querySelector('.raw');
+        const btn = this.shadowRoot.querySelector('[data-action="toggle"]');
+        rendered.classList.toggle('hidden', this._showRaw);
+        raw.classList.toggle('hidden', !this._showRaw);
+        const svgIcon = btn.querySelector('svg')?.outerHTML || '';
+        btn.innerHTML = svgIcon + (this._showRaw ? ' See rendered' : ' See code');
+      });
+
+      this.shadowRoot.addEventListener('click', (e) => {
+        if (!e.target.closest('.tag-area')) {
+          this._menuOpen = false;
+          this.shadowRoot.querySelector('.menu').classList.add('hidden');
+        }
+      });
+
+      this._docClickHandler = () => {
+        this._menuOpen = false;
+        this.shadowRoot.querySelector('.menu').classList.add('hidden');
+      };
+    }
+
+    document.addEventListener('click', this._docClickHandler);
+  }
+
+  disconnectedCallback() {
+    document.removeEventListener('click', this._docClickHandler);
+  }
+
+  _dedent(text) {
+    const lines = text.replace(/^\n+/, '').replace(/\n+$/, '').split('\n');
+    const indent = lines
+      .filter(l => l.trim().length > 0)
+      .reduce((min, l) => {
+        const leading = l.match(/^ */)[0].length;
+        return Math.min(min, leading);
+      }, Infinity);
+    return lines.map(l => l.slice(indent)).join('\n').trim();
+  }
+
+  _escapeHtml(s) {
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  static get styles() {
+    return `
+      :host { display: block; }
+      .wrap {
+        position: relative;
+        border: 1px solid #d0d5dd;
+        border-radius: 10px;
+        padding: 1.25rem 1.5rem;
+        background: #fff;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        color: #1a1a2e;
+        line-height: 1.6;
+      }
+      .rendered, .raw { padding-top: 1rem; }
+      .rendered { font-size: 0.95rem; }
+      .rendered h2 { font-size: 1.25rem; border-bottom: 1px solid #eee; padding-bottom: 0.3em; }
+      .rendered h3 { font-size: 1.05rem; }
+      .rendered p { margin: 0.5em 0; }
+      .rendered ul, .rendered ol { padding-left: 1.4em; margin: 0.4em 0; }
+      .rendered li { margin: 0.2em 0; }
+      .rendered blockquote {
+        margin: 0.8em 0; padding: 0.4em 1em;
+        border-left: 3px solid #f0bebe; background: #fdf5f5;
+        color: #444; font-style: italic;
+      }
+      .rendered code {
+        background: #f0f0f5; padding: 0.15em 0.4em; border-radius: 4px;
+        font-size: 0.88em; font-family: 'SF Mono', Consolas, monospace;
+      }
+      .rendered pre {
+        background: #1e1e2e; color: #cdd6f4; padding: 1em;
+        border-radius: 8px; overflow-x: auto; font-size: 0.85rem;
+        line-height: 1.5;
+      }
+      .rendered pre code { background: none; padding: 0; color: inherit; }
+      .rendered table { border-collapse: collapse; width: 100%; margin: 0.6em 0; font-size: 0.9rem; }
+      .rendered th, .rendered td { border: 1px solid #ddd; padding: 0.45em 0.8em; text-align: left; }
+      .rendered th { background: #f5f5fa; font-weight: 600; }
+      .rendered img { max-width: 100%; border-radius: 6px; }
+      .raw {
+        white-space: pre-wrap; word-wrap: break-word;
+        font-family: 'SF Mono', Consolas, monospace;
+        font-size: 0.88rem; line-height: 1.55; margin: 0;
+        color: #374151; background: #f9fafb;
+        padding: 1.5rem 0.8em 0.8em; border-radius: 6px;
+      }
+      .tag-area {
+        position: absolute; top: 10px; right: 12px;
+        display: flex; flex-direction: column; align-items: flex-end;
+        z-index: 2; user-select: none;
+      }
+      .tag {
+        background: #fbeaea; color: #b41d1d;
+        font-size: 0.7rem; font-weight: 600;
+        text-transform: uppercase; letter-spacing: 0.04em;
+        padding: 3px 10px; border-radius: 6px;
+        border: 1px solid #f0bebe; cursor: pointer;
+        transition: background 0.15s, transform 0.1s; font-family: inherit;
+      }
+      .tag:hover { background: #f5d0d0; }
+      .tag:active { transform: scale(0.96); }
+      .menu {
+        margin-top: 6px; background: #fff;
+        border: 1px solid #e0e0e0; border-radius: 8px;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+        overflow: hidden; min-width: 140px;
+      }
+      .menu-btn {
+        display: flex; align-items: center; gap: 8px;
+        width: 100%; padding: 8px 14px;
+        font-size: 0.82rem; font-family: inherit;
+        color: #333; background: none; border: none;
+        cursor: pointer; transition: background 0.12s;
+      }
+      .menu-btn:hover { background: #f3f4f6; }
+      .menu-btn + .menu-btn { border-top: 1px solid #f0f0f0; }
+      .menu-btn svg { flex-shrink: 0; opacity: 0.6; }
+      .hidden { display: none !important; }
+    `;
+  }
+}
+
+if (!customElements.get('markdown-copy')) {
+  customElements.define('markdown-copy', MarkdownCopy);
+}
