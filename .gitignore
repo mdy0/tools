@@ -2,6 +2,7 @@
 .env
 .env.*
 !.env.example
+.tokens.json
 .message_ids.json
 session-logs/
 ideas/
