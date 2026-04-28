@@ -79,23 +79,26 @@ Tokens are saved to `.tokens.json` (`chmod 600`).
 # List your folders and unread counts
 python3 auth.py --list-folders
 
-# Fetch articles from a folder (last 24 hours, output to stdout)
+# Fetch articles from a folder (last 24h, saves to data/YYYY-MM-DD.json)
 python3 fetch.py --folder "Daily Briefing"
 
 # Fetch with a custom lookback window
 python3 fetch.py --folder "Daily Briefing" --hours 48
 
-# Write output to a file instead of stdout
+# Write output to a specific file
 python3 fetch.py --folder "Daily Briefing" --out articles.json
+
+# Write to stdout for piping
+python3 fetch.py --folder "Daily Briefing" --out -
 
 # Force a token refresh
 python3 auth.py --refresh
 ```
 
-Rate limit diagnostics are printed to stderr; article JSON goes to stdout. This makes it easy to pipe the output while still seeing progress:
+By default, output is saved to `data/YYYY-MM-DD.json` in the current directory (created if it doesn't exist). Rate limit diagnostics are printed to stderr. Use `--out -` to write JSON to stdout for piping:
 
 ```bash
-python3 fetch.py --folder "Daily Briefing" | jq '.[].title'
+python3 fetch.py --folder "Daily Briefing" --out - | jq '.[].title'
 ```
 
 ---
@@ -135,9 +138,9 @@ article = normalize_article(raw_item, folder_name="Daily Briefing")
 
 ```bash
 # Pipe into another tool
-python3 fetch.py --folder "News" --hours 24 | python3 my_pipeline.py
+python3 fetch.py --folder "News" --hours 24 --out - | python3 my_pipeline.py
 
-# Save and process later
+# Save to a specific path and process later
 python3 fetch.py --folder "News" --out /tmp/articles.json
 jq '.[].url' /tmp/articles.json
 ```
