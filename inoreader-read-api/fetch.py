@@ -8,8 +8,8 @@ Usage:
   python3 fetch.py --folder "Daily Briefing" --out articles.json
   python3 fetch.py --list-folders
 
-Output is a JSON array of normalized article objects written to stdout (default)
-or to --out if specified.
+Output is a JSON array of normalized article objects saved to data/YYYY-MM-DD.json
+by default. Use --out to specify a different path, or --out - to write to stdout.
 """
 
 import argparse
@@ -153,7 +153,7 @@ def main():
     parser.add_argument("--folder", help="Folder name to fetch (case-sensitive)")
     parser.add_argument("--hours", type=float, default=24,
                         help="Lookback window in hours (default: 24)")
-    parser.add_argument("--out", help="Write output to this file instead of stdout")
+    parser.add_argument("--out", help="Output file path (default: data/YYYY-MM-DD.json). Use - for stdout.")
     parser.add_argument("--list-folders", action="store_true",
                         help="Print folder names and exit")
     args = parser.parse_args()
@@ -197,13 +197,14 @@ def main():
     print(f"Fetched {len(articles)} articles.", file=sys.stderr)
 
     output = json.dumps(articles, indent=2)
-    if args.out:
-        out_path = Path(args.out)
+    if args.out == "-":
+        print(output)
+    else:
+        today = datetime.now().strftime("%Y-%m-%d")
+        out_path = Path(args.out) if args.out else Path(f"data/{today}.json")
         out_path.parent.mkdir(parents=True, exist_ok=True)
         out_path.write_text(output)
-        print(f"Saved to {args.out}", file=sys.stderr)
-    else:
-        print(output)
+        print(f"Saved {len(articles)} articles to {out_path}")
 
 
 if __name__ == "__main__":
