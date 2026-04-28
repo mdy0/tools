@@ -8,6 +8,7 @@ Inspired by [simonw/tools](https://github.com/simonw/tools).
 
 | Tool | What it does |
 |------|-------------|
+| [inoreader-read-api](inoreader-read-api/) | Fetch articles from Inoreader folders as JSON via OAuth 2.0 — auth setup, token refresh, paginated fetch, article normalization |
 | [markdown-copy-wp](markdown-copy-wp/) | `<markdown-copy>` web component for WordPress — renders markdown inline with a copy/toggle badge; no build step |
 | [tg-send](tg-send/) | Send one-way messages to Telegram via the Bot API — no MCP, no framework dependency |
 
