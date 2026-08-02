@@ -43,6 +43,7 @@ This is the most important section for reuse. It must include:
 ### Credentials and secrets
 
 - Every tool that needs credentials must have a `.env.example` with placeholder values
+- **Placeholder values must be self-evidently fake, never format-valid dummies.** A real Mailchimp key, for example, is 32 hex characters plus a `-usN` suffix — a placeholder matching that shape trips GitHub push protection (it happened; see `lessons-learned/2026-08-03-env-example-placeholders-must-not-look-like-real-keys.md`). Use something obviously fake instead, e.g. `your-mailchimp-api-key-here-us1`. If a structural detail matters (a required suffix, a prefix), keep it on an obviously-fake body.
 - Every tool directory must have a `.gitignore` that ignores `.env`
 - The repo root `.gitignore` also ignores `.env` as a backstop
 - **Never hardcode tokens, chat IDs, API keys, or any credentials in scripts** — they go in `.env` only
