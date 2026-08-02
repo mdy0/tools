@@ -99,7 +99,11 @@ Four workflows, ordered from least setup to the full pipeline, then a flag refer
 3. **`pip install -r requirements.txt`**, if you haven't already.
 4. **`python3 push.py`** — pushes `sample/newsletter-2026-08-02.md` by default.
 
-`push.py` prints the campaign id, web id, template id, and banner URL as it goes, and opens the draft's editor URL in your browser (`--no-open` to suppress that). "Opens in your browser" means macOS's `open` command specifically, for both `push.py` and `preview.py` — on any other OS (or if `open` isn't found) `push.py` just prints the URL for you to open by hand, while `preview.py` falls back to Python's `webbrowser` module instead. Neither behavior is configurable; if `webbrowser`'s guess at a browser is wrong on your system, open the printed/written path yourself.
+`push.py` prints the campaign id, web id, template id, and banner URL as it goes, and opens the draft's editor URL in your browser (`--no-open` to suppress that).
+
+This is the full pushed draft as Mailchimp renders it, from the committed sample — banner, intro, all three sections (attribution lines, bullet lists, bold, inline links), the divider, Worth Reflecting, and the footer placeholder the push deliberately never touches:
+
+![The complete sample newsletter as a draft campaign rendered by Mailchimp](docs/draft-in-mailchimp.png) "Opens in your browser" means macOS's `open` command specifically, for both `push.py` and `preview.py` — on any other OS (or if `open` isn't found) `push.py` just prints the URL for you to open by hand, while `preview.py` falls back to Python's `webbrowser` module instead. Neither behavior is configurable; if `webbrowser`'s guess at a browser is wrong on your system, open the printed/written path yourself.
 
 ### Workflow 3 — Push your own newsletter
 
