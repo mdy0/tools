@@ -1,0 +1,20 @@
+{
+  "spreadsheet_id": "1brC4EiAATWxQDRIL6zLQuR5chmwCWum459-rh1-Jxgw",
+  "meta": {
+    "tab": "Meta",
+    "date": "B1",
+    "subject": "B2",
+    "preview_text": "B3",
+    "banner_file": "B4",
+    "banner_alt": "B5",
+    "banner_link": "B6",
+    "intro_title": "B7",
+    "intro_text": "B8"
+  },
+  "sections": [
+    {"tab": "Theme 1", "headline": "B1", "source": "B2", "summary": "B3"},
+    {"tab": "Theme 2", "headline": "B1", "source": "B2", "summary": "B3"},
+    {"tab": "Theme 3", "headline": "B1", "source": "B2", "summary": "B3"}
+  ],
+  "reflect": {"tab": "Reflect", "range": "B1:B5"}
+}
