@@ -2,6 +2,8 @@
 
 This is a distilled, sanitized digest of things learned the hard way, through direct experimentation against a live Mailchimp account. None of it is theoretical, and most of it either isn't in Mailchimp's own documentation or is actively contradicted by it. Every concrete id, count, and account fact below has been replaced by the generic fact it evidences.
 
+For the how-to version of the `mc:edit`/`mc:hideable` markup rules below — what to write, not why — see [docs/editable-regions.md](docs/editable-regions.md).
+
 ## Classic (legacy) builder vs. the new builder
 
 Everything below applies to the **classic/legacy coded-template API path** — the one Mailchimp's docs call, inconsistently, "the classic builder" or just leave undistinguished from the newer drag-and-drop builder. This tool creates campaigns from a coded (`mc:edit`-region) template using `POST /templates`, which always returns `drag_and_drop: false`. A drag-and-drop template behaves completely differently under the API (see below) and the official docs do not call out which rules apply to which builder. If `drag_and_drop` ever comes back `true` for a template you're patching, stop — section writes will not work against it.

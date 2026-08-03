@@ -1,6 +1,6 @@
 # AGENTS.md — read this before touching any code in this directory
 
-You are working on a tool that creates **draft** email campaigns in a real Mailchimp account via the Marketing API. The rules below are not suggestions — they are the safety contract this tool exists to enforce, and every one of them has a reason rooted in something that actually went wrong during development. Read `API-NOTES.md` for the underlying facts; this file is the imperative version.
+You are working on a tool that creates **draft** email campaigns in a real Mailchimp account via the Marketing API. The rules below are not suggestions — they are the safety contract this tool exists to enforce, and every one of them has a reason rooted in something that actually went wrong during development. Read `API-NOTES.md` for the underlying facts; this file is the imperative version. See `docs/editable-regions.md` for the how-to on the `mc:edit`/`mc:hideable` markup itself.
 
 ## Never call send, test, resume, or schedule
 

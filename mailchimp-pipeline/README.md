@@ -65,7 +65,7 @@ The safety rules are enforced in code, not just documented:
 - **Every write is verified.** A successful API response is not trusted; the rendered campaign is re-fetched and checked against what was pushed, every run.
 - **Deletes are gated.** The tool only deletes campaigns it marked as its own throwaways, and never a scheduled one.
 
-[AGENTS.md](AGENTS.md) is the authoritative safety contract; [API-NOTES.md](API-NOTES.md) documents the observed Mailchimp behavior behind each rule.
+[AGENTS.md](AGENTS.md) is the authoritative safety contract; [API-NOTES.md](API-NOTES.md) documents the observed Mailchimp behavior behind each rule. For the `mc:edit`/`mc:hideable` markup that makes a region editable or hideable in the Mailchimp Web Admin UI in the first place, [docs/editable-regions.md](docs/editable-regions.md) is the how-to.
 
 ## One-time human setup
 
