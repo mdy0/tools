@@ -23,9 +23,13 @@ Deliberately simple: single values at single cells, no merged ranges, no rich-te
 | Theme 1 | B3 | Summary (multi-line cell; inline links written as `[label](url)` markdown, `**bold**` for emphasis, and a run of `- ` lines renders as a bullet list — see FORMAT.md. No rich-text/`textFormatRuns` reading needed, which is the deliberate simplification here) |
 | Theme 2 | B1–B3 | same shape as Theme 1 |
 | Theme 3 | B1–B3 | same shape as Theme 1 |
+| Related | B1, B3, B5, B7, B9 | Related-link title, one per pair (title 1, title 2, …) |
+| Related | B2, B4, B6, B8, B10 | Related-link URL, immediately below its title (link 1, link 2, …) |
 | Reflect | B1:B5 | one question per row; blank rows are ignored |
 
-Column A of every tab holds a human-readable label (`Subject`, `Headline`, …) so the sheet is self-describing to a person looking at it. `collect.py` only ever reads column B (and `Reflect!B1:B5`) — column A is documentation, not data.
+Column A of every tab holds a human-readable label (`Subject`, `Headline`, …) so the sheet is self-describing to a person looking at it. `collect.py` only ever reads column B (and `Reflect!B1:B5`, `Related!B1:B10`) — column A is documentation, not data.
+
+**Related tab layout:** title and link alternate row by row — `B1` = title of the first related-reading link, `B2` = its URL, `B3` = the second title, `B4` = its URL, and so on. `collect.py` reads the whole `B1:B10` range and pairs consecutive rows (odd = title, even = link); a pair with either half blank is dropped. That range supports up to 5 pairs, matching FORMAT.md's `## Related Reading` limit of 1–5 links — add more rows below `B10` and widen the `related_reading.range` in `config.json` if you ever need more than 5.
 
 ## `config.json`
 

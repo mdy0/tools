@@ -190,6 +190,16 @@ def render_section_text(section) -> str:
     return _styled_div(_join_paragraphs(paragraphs), font_size=16, line_height=1.5, mso_line_height_alt=150)
 
 
+def render_related_reading_text(links: List[str]) -> str:
+    """links are raw '[label](url)' markdown link strings (newsletter_markdown._parse_related_reading's
+    output) -- joined back into a '- ' bullet block so render_paragraph's existing bullet-block path
+    (_is_bullet_block) handles them exactly like a bullet block inside a section summary, rather than
+    duplicating that rendering logic here.
+    """
+    bullet_block = '\n'.join(f'- {link}' for link in links)
+    return _styled_div(render_paragraph(bullet_block), font_size=16, line_height=1.5, mso_line_height_alt=150)
+
+
 def render_reflect_text(questions: List[str]) -> str:
     return _styled_div(
         _join_paragraphs([render_paragraph(q) for q in questions]),
@@ -206,6 +216,8 @@ def render_regions(parsed: ParsedNewsletter) -> Dict[str, str]:
     regions = {
         'intro_title': render_heading_spans(parsed.intro_title),
         'intro_text': render_intro_text(parsed.intro_paragraphs),
+        'related_reading_title': render_heading_spans('Related Reading'),
+        'related_reading_text': render_related_reading_text(parsed.related_reading_links),
         'reflect_title': render_heading_spans('Worth Reflecting'),
         'reflect_text': render_reflect_text(parsed.reflect_questions),
     }

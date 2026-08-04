@@ -36,6 +36,7 @@ class ParsedNewsletter:
     intro_title: str
     intro_paragraphs: List[str]
     sections: List[Section]
+    related_reading_links: List[str]
     reflect_questions: List[str]
 
 
@@ -116,7 +117,7 @@ def _parse_section_block(block):
 
 
 def _parse_sections(text):
-    match = re.search(r'^## This Week\n+(.*?)\n+## Worth Reflecting', text, re.DOTALL | re.MULTILINE)
+    match = re.search(r'^## This Week\n+(.*?)\n+## Related Reading', text, re.DOTALL | re.MULTILINE)
     if not match:
         raise NewsletterMarkdownError("Could not find ## This Week section")
     blocks = [b.strip() for b in re.split(r'^---\s*$', match.group(1), flags=re.MULTILINE) if b.strip()]
@@ -125,6 +126,24 @@ def _parse_sections(text):
             f"## This Week must have exactly 3 section blocks (the template has 3 slots), found {len(blocks)}"
         )
     return [_parse_section_block(block) for block in blocks]
+
+
+def _parse_related_reading(text):
+    match = re.search(r'^## Related Reading\n+(.*?)\n+## Worth Reflecting', text, re.DOTALL | re.MULTILINE)
+    if not match:
+        raise NewsletterMarkdownError("Could not find ## Related Reading section")
+    lines = [line.strip() for line in match.group(1).splitlines() if line.strip()]
+    links = []
+    for line in lines:
+        bullet = re.match(r'^-\s+(\[[^\]]+\]\([^)]+\))\s*$', line)
+        if not bullet:
+            raise NewsletterMarkdownError(
+                f"Malformed line in ## Related Reading (expected '- [label](url)'): {line}"
+            )
+        links.append(bullet.group(1))
+    if not (1 <= len(links) <= 5):
+        raise NewsletterMarkdownError(f"## Related Reading must have 1-5 links, found {len(links)}")
+    return links
 
 
 def _parse_reflect(text):
@@ -162,5 +181,6 @@ def parse_newsletter_markdown(path) -> ParsedNewsletter:
         intro_title=intro_title,
         intro_paragraphs=intro_paragraphs,
         sections=_parse_sections(text),
+        related_reading_links=_parse_related_reading(text),
         reflect_questions=_parse_reflect(text),
     )

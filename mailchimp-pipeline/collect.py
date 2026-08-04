@@ -114,11 +114,30 @@ def fetch_newsletter(config: dict, api_key: str) -> dict:
             for field, cell in section_cfg.items() if field != 'tab'
         })
 
+    related_cfg = config['related_reading']
+    related_rows = read_range(spreadsheet_id, f"'{related_cfg['tab']}'!{related_cfg['range']}", api_key)
+    # Rows alternate Title, Link, Title, Link, ... (Related!B1=title 1, B2=link 1, B3=title 2, ...) --
+    # not one markdown-link-per-row like Reflect's plain question list, because a title and its URL
+    # are two independent values, not one that's naturally typed as a single cell. Pair them up;
+    # a row with no counterpart (an odd trailing title with no link row returned) or a blank member
+    # of the pair is dropped rather than raising here -- newsletter_markdown.py's own 1-5-links
+    # check is what enforces the final count, so an accidental gap surfaces there, not here.
+    related_reading = [
+        (title[0].strip(), link[0].strip())
+        for title, link in zip(related_rows[0::2], related_rows[1::2])
+        if title and link and title[0].strip() and link[0].strip()
+    ]
+
     reflect_cfg = config['reflect']
     reflect_rows = read_range(spreadsheet_id, f"'{reflect_cfg['tab']}'!{reflect_cfg['range']}", api_key)
     reflect_questions = [row[0].strip() for row in reflect_rows if row and row[0].strip()]
 
-    return {'meta': meta, 'sections': sections, 'reflect_questions': reflect_questions}
+    return {
+        'meta': meta,
+        'sections': sections,
+        'related_reading': related_reading,
+        'reflect_questions': reflect_questions,
+    }
 
 
 def write_markdown(data: dict, out_path: Path) -> None:
@@ -161,6 +180,12 @@ def write_markdown(data: dict, out_path: Path) -> None:
         ])
         if i < len(data['sections']) - 1:
             lines.extend(['---', ''])
+
+    lines.append('## Related Reading')
+    lines.append('')
+    for title, url in data['related_reading']:
+        lines.append(f'- [{title}]({url})')
+    lines.append('')
 
     lines.append('## Worth Reflecting')
     lines.append('')

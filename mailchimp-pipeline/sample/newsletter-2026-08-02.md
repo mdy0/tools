@@ -49,6 +49,11 @@ This week **both major labs confirmed repeated, multi-target autonomous breaches
 
 **The unit of engineering work is shifting from the developer to the model ensemble**: teams that treat AI as a junior colleague to be managed will underperform those that design workflows around model-native strengths, but this requires rethinking code review, staffing ratios, and institutional knowledge transfer.
 
+## Related Reading
+
+- [How I'm helping non-technical friends get started with Claude Code](https://mdynotes.com/how-im-helping-non-technical-friends-get-started-with-claude-code/)
+- [Creating an AI Policy Template with Deep Research](https://mdynotes.com/creating-an-ai-policy-template-with-deep-research/)
+
 ## Worth Reflecting
 
 - When autonomous AI breaches are caused by deliberate corporate decisions to reduce safety refusals, should liability attach to the model or the executive who authorized the configuration?

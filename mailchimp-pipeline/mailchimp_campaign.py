@@ -273,6 +273,10 @@ def verify_rendered_html(html: str, parsed: ParsedNewsletter, banner_url: Option
             # itself is never what's in the rendered html; check against the same transformation.
             if not _rendered_paragraph_present(paragraph, html):
                 problems.append(f'a summary paragraph not found in rendered html ({section.headline!r})')
+    if parsed.related_reading_links:
+        related_reading_block = '\n'.join(f'- {link}' for link in parsed.related_reading_links)
+        if not _rendered_paragraph_present(related_reading_block, html):
+            problems.append('Related Reading links not found in rendered html')
     for question in parsed.reflect_questions:
         if not _rendered_paragraph_present(question, html):
             problems.append('a Worth Reflecting question not found in rendered html')

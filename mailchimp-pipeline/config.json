@@ -16,5 +16,6 @@
     {"tab": "Theme 2", "headline": "B1", "source": "B2", "summary": "B3"},
     {"tab": "Theme 3", "headline": "B1", "source": "B2", "summary": "B3"}
   ],
+  "related_reading": {"tab": "Related", "range": "B1:B10"},
   "reflect": {"tab": "Reflect", "range": "B1:B5"}
 }

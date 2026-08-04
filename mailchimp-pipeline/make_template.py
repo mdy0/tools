@@ -36,11 +36,13 @@ OUT_PATH = SCRIPT_DIR / 'template.html'
 # the push stack — but see newsletter_renderer.FONT_STACK for the source of truth.
 FONT_STACK = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif"
 
-# The 12 regions this template must contain, in the order they appear. Heading regions carry
+# The 14 regions this template must contain, in the order they appear. Heading regions carry
 # their size via nested <span>s by design (the region sits on the heading element itself) --
 # body regions must have none. The <p>/<span> self-check below only applies to DIV_REGIONS.
-HEADING_REGIONS = ['intro_title', 'section_1_title', 'section_2_title', 'section_3_title', 'reflect_title']
-DIV_REGIONS = ['intro_text', 'section_1_text', 'section_2_text', 'section_3_text', 'reflect_text', 'footer_text']
+HEADING_REGIONS = ['intro_title', 'section_1_title', 'section_2_title', 'section_3_title',
+                    'related_reading_title', 'reflect_title']
+DIV_REGIONS = ['intro_text', 'section_1_text', 'section_2_text', 'section_3_text',
+                'related_reading_text', 'reflect_text', 'footer_text']
 EXPECTED_REGIONS = ['banner'] + HEADING_REGIONS + DIV_REGIONS
 
 PLACEHOLDER_BANNER_SRC = (
@@ -74,8 +76,25 @@ def _section_block(n):
     )
 
 
+def _related_reading_block():
+    # A single <tr> is the whole hideable unit -- its own divider, heading, and link list all
+    # live inside one <td> under one mc:hideable, so clicking "hide" in the editor removes the
+    # divider along with the content instead of leaving an orphaned <hr> behind (see
+    # docs/editable-regions.md section 4: one hide control per group, nothing left outside it).
+    # No mc:edit on the <tr> itself -- only on the heading and text div nested inside it.
+    return (
+        '<tr mc:hideable="related_reading_block"><td style="padding: 24px 24px 0 24px;" valign="top">\n'
+        '  <hr style="border: 0;border-top: 2px solid #94a3b8;margin: 0 0 24px 0;">\n'
+        f'  {_heading("related_reading_title", "Related Reading")}\n'
+        '  <div style="height: 8px;line-height: 8px;font-size: 0;">&nbsp;</div>\n'
+        f'  {_text_div("related_reading_text", "Related reading links go here.")}\n'
+        '</td></tr>'
+    )
+
+
 def build_html():
     sections = '\n'.join(_section_block(n) for n in (1, 2, 3))
+    related_reading = _related_reading_block()
 
     # No selector in this stylesheet names an anchor (e.g. "a", "a:hover", ".foo a") — that's the
     # legacy-builder discovery that anchor-naming CSS rules make hyperlinked text vanish from the
@@ -110,6 +129,7 @@ def build_html():
   {_text_div('intro_text', 'Intro body text goes here.')}
 </td></tr>
 {sections}
+{related_reading}
 <tr><td style="padding: 24px 24px 0 24px;">
   <hr style="border: 0;border-top: 2px solid #94a3b8;margin: 0;">
 </td></tr>

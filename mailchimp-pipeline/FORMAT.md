@@ -40,6 +40,11 @@ The shape is a header block of `**Field:** value` lines, followed by `##` sectio
 ### {section 3 headline}
 … (same block shape) …
 
+## Related Reading
+
+- [{label}]({url})
+- [{label}]({url})
+
 ## Worth Reflecting
 
 - {question}
@@ -80,6 +85,10 @@ separated from each other by a line containing only `---`.
 - The **summary** may also contain `**bold**` markdown — it converts to `<strong>`. This and the inline-link support above apply everywhere prose is rendered: the intro paragraphs and the Worth Reflecting questions get the same treatment, not just section summaries.
 - One of the summary's blank-line-separated paragraphs may instead be a **bullet block**: every line in it starts with `- ` (no blank lines between the lines — that's what makes it one "paragraph" rather than several). It renders as `•`-marked lines inside the same styled block, not as ordinary prose. A paragraph that mixes bullet and non-bullet lines is treated as prose (its `- ` lines render literally) — keep a bullet block's lines uniform.
 - The template has exactly three section slots. A collector that produces a different count is a contract violation — `newsletter_markdown.py` aborts and names the count it found (that check is what actually enforces the limit; `newsletter_renderer.py` is count-agnostic, it just loops over however many sections it's handed). Changing the section count means regenerating `template.html` via `make_template.py` (never hand-edit `template.html` itself — it's generated output, committed only so a clone works without running the generator) and updating that count check in `newsletter_markdown.py` too; it is not a Stage-1-only change.
+
+### `## Related Reading`
+
+A `- [{label}]({url})` bullet list, 1–5 items, one link per line — the same markdown-link syntax used for inline links inside a section summary, just as the whole line rather than embedded in prose. Sits between `## This Week` and `## Worth Reflecting`. This section is always required in the markdown (parsing fails without it, same as any other section) — the way to omit Related Reading from a given week's *sent* campaign is to hide it by hand in the Mailchimp editor's hide control after pushing, not to leave the section out of the source file. That control exists because this section renders inside an `mc:hideable` wrapper in `template.html` (see `docs/editable-regions.md` section 4) — the only section in this template that does.
 
 ### `## Worth Reflecting`
 
