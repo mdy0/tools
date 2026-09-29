@@ -8,3 +8,6 @@ session-logs/
 ideas/
 security/
 lessons-learned/
+
+# Personal reference docs (not part of the shared tools)
+references/
