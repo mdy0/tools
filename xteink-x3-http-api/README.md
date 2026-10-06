@@ -1,4 +1,4 @@
-# Xteink X3 eReader: HTTP API reference (unofficial)
+# XTEiNK X3 eReader: HTTP API reference (unofficial)
 
 This is a reference for anyone who wants to write their own tool that copies books to an XTEiNK X3 over Wi-Fi, instead of using the vendor's web page.
 
@@ -272,9 +272,9 @@ def upload(ip, local_path, dest, block=16384):
 - Encoding conversion for `.txt` files. The vendor page detects the encoding in the browser and converts before uploading; EPUB needs no conversion and is the main case.
 - Responses when the SD card is busy or unavailable.
 - Any re-index endpoint (none is known, and I did not guess at endpoints).
-- Other firmware versions, other Xteink models, and the CrossPoint community firmware.
+- Other firmware versions, other XTEiNK models, and the CrossPoint community firmware.
 - Several readers on one network at once (the `/Read_staNameIp` name is the Wi-Fi network, so tell them apart by IP, or by a marker file you place on the card).
 
 ## Source
 
-The calls above were read from the vendor's own web page (the device calls are all in its app logic file, on one object, with Chinese console labels such as `[list]`, `[upload]`, `[delete]`, `[rename]`, `[createFolder]`) and then each one was tried against a real device. This document is unofficial and not affiliated with or endorsed by Xteink. Use it at your own risk: the API has no authentication and can delete files on the card.
+The calls above were read from the vendor's own web page (the device calls are all in its app logic file, on one object, with Chinese console labels such as `[list]`, `[upload]`, `[delete]`, `[rename]`, `[createFolder]`) and then each one was tried against a real device. This document is unofficial and not affiliated with or endorsed by XTEiNK. Use it at your own risk: the API has no authentication and can delete files on the card.
