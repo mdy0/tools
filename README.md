@@ -12,6 +12,7 @@ Inspired by [simonw/tools](https://github.com/simonw/tools).
 | [mailchimp-pipeline](mailchimp-pipeline/) | Two-stage newsletter pipeline — collect a markdown source-of-truth from a Google Sheet, push a draft Mailchimp campaign via the classic-builder API, with hard safety blocks against send/schedule |
 | [markdown-copy-wp](markdown-copy-wp/) | `<markdown-copy>` web component for WordPress — renders markdown inline with a copy/toggle badge; no build step |
 | [tg-send](tg-send/) | Send one-way messages to Telegram via the Bot API — no MCP, no framework dependency |
+| [xteink-x3-http-api](xteink-x3-http-api/) | Unofficial HTTP API reference for the Xteink X3 eReader's Wi-Fi transfer server — endpoints, quirks, timeouts, examples; reference only, no code |
 
 ## Philosophy
 
