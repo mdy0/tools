@@ -2,6 +2,8 @@
 
 This is a reference for anyone who wants to write their own tool that copies books to an XTEiNK X3 over Wi-Fi, instead of using the vendor's web page.
 
+This reference came out of building a Finder-folder sync tool for the X3. The full story is in [Making My Own Sync Tool for the XTEiNK X3 eReader](https://mdynotes.com/personal-xteink-x3-sync-tool/).
+
 The contents were derived from reading the code of the vendor's web page, <http://bofi.xteink.com/index.html> (the device calls are in its `assets/pages-index-index.*.js` file), and then testing every call against a real device. Nothing here comes from the vendor's documentation.
 
 **Page retrieved:** 2026-10-06. Its files were last modified by the vendor on 2026-02-05, before the device testing below, and still matched this document when re-checked. The vendor can change the page at any time without notice, so if a call here behaves differently, read the page's code again.
