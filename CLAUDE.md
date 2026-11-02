@@ -57,6 +57,10 @@ This is the most important section for reuse. It must include:
 5. Update the repo root `README.md` to add the tool to the catalog table
 6. Commit and push
 
+### Prompts
+
+A reusable prompt goes in `prompts/prompt-name/` (kebab-case), never at the repo root. Each prompt folder has a `README.md` with: what the prompt is and when to use it, the prompt itself in one code block, what each part of the prompt does, and notes. A prompt needs no script and no `.env`. List it in the "Prompts" table of the root `README.md`, not in the "Tools" table. The six-section tool README structure above does not apply to prompts.
+
 ## Session logs
 
 Session logs go in `session-logs/` at the repo root (gitignored). Follow the same naming convention as other projects: `YYYYMmmDD-descriptive-stub.md`.

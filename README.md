@@ -1,6 +1,6 @@
 # tools
 
-A collection of reusable scripts and utilities that serve as reference implementations for common tasks across projects. Each tool is self-contained in its own directory with its own README, credential templates, and setup instructions.
+A collection of reusable scripts, utilities and prompts that serve as reference implementations for common tasks across projects. Each tool is self-contained in its own directory with its own README, credential templates, and setup instructions.
 
 Inspired by [simonw/tools](https://github.com/simonw/tools).
 
@@ -13,6 +13,14 @@ Inspired by [simonw/tools](https://github.com/simonw/tools).
 | [markdown-copy-wp](markdown-copy-wp/) | `<markdown-copy>` web component for WordPress — renders markdown inline with a copy/toggle badge; no build step |
 | [tg-send](tg-send/) | Send one-way messages to Telegram via the Bot API — no MCP, no framework dependency |
 | [xteink-x3-http-api](xteink-x3-http-api/) | Unofficial HTTP API reference for the XTEiNK X3 eReader's Wi-Fi transfer server — endpoints, quirks, timeouts, examples; reference only, no code |
+
+## Prompts
+
+Reusable prompts for AI coding assistants live in [prompts/](prompts/), one folder per prompt.
+
+| Prompt | What it does |
+|--------|-------------|
+| [ste-user-facing-text](prompts/ste-user-facing-text/) | Rewrite script output, error messages and runbooks in ASD-STE100 (Simplified Technical English) for readers in a hurry; includes a before-and-after screenshot |
 
 ## Philosophy
 
